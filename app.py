@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import cv2
 import os
+import base64
 
 from measurement import measure_object
 from anomaly import detect_anomaly
@@ -26,25 +27,40 @@ def inspect():
     path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(path)
 
+    # Measure dimensions
     width, height, _ = measure_object(path)
 
+    # Dimension check
     dim_result = check_dimensions(width, height)
 
-    anomaly_status, _ = detect_anomaly(path)
+    # Detect anomaly + heatmap
+    anomaly_status, heatmap = detect_anomaly(path)
 
+    # Final decision
     final_status = "PASS"
 
     if dim_result == "NOT OK" or anomaly_status == "DEFECT DETECTED":
         final_status = "FAIL"
 
+    # Save log
     save_result(width, height, final_status)
 
+    # Convert heatmap to web format
+    _, buffer = cv2.imencode(".jpg", heatmap)
+    img_base64 = base64.b64encode(buffer).decode("utf-8")
+
     return f"""
+    <h2>Inspection Result</h2>
+
     Width: {width:.2f} mm <br>
     Height: {height:.2f} mm <br>
     Dimension Result: {dim_result} <br>
-    Anomaly: {anomaly_status} <br>
-    <h2>Final Result: {final_status}</h2>
+    Anomaly Status: {anomaly_status} <br>
+
+    <h2>Final Status: {final_status}</h2>
+
+    <h3>Defect Heatmap</h3>
+    <img src="data:image/jpeg;base64,{img_base64}" width="400">
     """
 
 
