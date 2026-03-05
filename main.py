@@ -1,22 +1,27 @@
 from measurement import measure_object
 from inspection import check_dimensions
+from anomaly import detect_anomaly
 from logger import save_result
 
-import cv2
+image_path = "images/sample 2.jpg"
 
-image_path = "images/sample image.jpg"   # Put test image here
+# Dimension detection
+width, height, _ = measure_object(image_path)
+dimension_result = check_dimensions(width, height)
 
-width, height, output_image = measure_object(image_path)
+# Surface defect detection
+anomaly_status, _ = detect_anomaly(image_path)
 
-result = check_dimensions(width, height)
+# Final industrial decision
+if dimension_result == "OK" and anomaly_status == "NO DEFECT":
+    final_status = "PASS"
+else:
+    final_status = "FAIL"
 
 print("Width:", width)
 print("Height:", height)
-print("Inspection Result:", result)
+print("Dimension Result:", dimension_result)
+print("Anomaly Status:", anomaly_status)
+print("Final Status:", final_status)
 
-if width is not None:
-    save_result(width, height, result)
-
-    cv2.imshow("Inspection Output", output_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+save_result(width, height, final_status)
