@@ -34,7 +34,7 @@ def inspect():
     dim_result = check_dimensions(width, height)
 
     # Detect anomaly + heatmap
-    anomaly_status, heatmap = detect_anomaly(path)
+    anomaly_status, heatmap, confidence = detect_anomaly(path)
 
     # Final decision
     final_status = "PASS"
@@ -56,6 +56,7 @@ def inspect():
     Height: {height:.2f} mm <br>
     Dimension Result: {dim_result} <br>
     Anomaly Status: {anomaly_status} <br>
+    AI confidence: {confidence}% <br>
 
     <h2>Final Status: {final_status}</h2>
 
