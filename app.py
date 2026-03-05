@@ -1,65 +1,52 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request
 import cv2
-import numpy as np
+import os
+
 from measurement import measure_object
 from anomaly import detect_anomaly
+from inspection import check_dimensions
+from logger import save_result
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return "AI Inspection System Running"
+UPLOAD_FOLDER = "images"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route("/inspect", methods=["POST"])
-def inspect():
-
-    file = request.files["image"]
-    
-    file_bytes = np.frombuffer(file.read(), np.uint8)
-    image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-
-    width, height, dimension_status = measure_object(image)
-    anomaly_status = detect_anomaly(image)
-
-    if dimension_status == "OK" and anomaly_status == "NO DEFECT":
-        final_status = "PASS"
-    else:
-        final_status = "FAIL"
-
-    result = {
-        "width": width,
-        "height": height,
-        "dimension_result": dimension_status,
-        "anomaly_status": anomaly_status,
-        "final_status": final_status
-    }
-
-    return jsonify(result)
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-    from flask import Flask, request, jsonify, render_template
-import os
-from main import run_inspection
-
-app = Flask(__name__)
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
+
 @app.route("/inspect", methods=["POST"])
 def inspect():
+
     file = request.files["image"]
-    
-    filepath = os.path.join("images", file.filename)
-    file.save(filepath)
 
-    result = run_inspection(filepath)
+    path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(path)
 
-    return jsonify(result)
+    width, height, _ = measure_object(path)
+
+    dim_result = check_dimensions(width, height)
+
+    anomaly_status, _ = detect_anomaly(path)
+
+    final_status = "PASS"
+
+    if dim_result == "NOT OK" or anomaly_status == "DEFECT DETECTED":
+        final_status = "FAIL"
+
+    save_result(width, height, final_status)
+
+    return f"""
+    Width: {width:.2f} mm <br>
+    Height: {height:.2f} mm <br>
+    Dimension Result: {dim_result} <br>
+    Anomaly: {anomaly_status} <br>
+    <h2>Final Result: {final_status}</h2>
+    """
+
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
