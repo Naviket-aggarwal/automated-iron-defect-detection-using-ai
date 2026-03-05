@@ -39,3 +39,27 @@ def inspect():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+    from flask import Flask, request, jsonify, render_template
+import os
+from main import run_inspection
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/inspect", methods=["POST"])
+def inspect():
+    file = request.files["image"]
+    
+    filepath = os.path.join("images", file.filename)
+    file.save(filepath)
+
+    result = run_inspection(filepath)
+
+    return jsonify(result)
+
+if __name__ == "__main__":
+    app.run()
