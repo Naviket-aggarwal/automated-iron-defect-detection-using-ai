@@ -1,4 +1,4 @@
-Industrial Surface Defect Detection and automated measurement System
+Industrial Defect Detection and automated measurement System
 
 This project detects scratches or defects on metal surfaces using
 a trained machine learning model.
