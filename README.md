@@ -53,7 +53,7 @@ pip install -r requirements.txt
 3. Run Application
 python app.py
 4. Open in Browser
-http://127.0.0.1:5000/
+[http://127.0.0.1:5000/](https://automated-iron-defect-detection-using-ai.onrender.com)
 Model Details
 Model Type: Convolutional Neural Network (CNN)
 Task: Binary classification (Defective / Non-Defective)
